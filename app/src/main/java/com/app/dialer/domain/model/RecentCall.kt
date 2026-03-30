@@ -41,6 +41,16 @@ enum class RecentCallType {
     VOICEMAIL,
     BLOCKED;
 
+    /** Returns the [android.provider.CallLog.Calls] integer for this type. */
+    fun toSystemValue(): Int = when (this) {
+        INCOMING  -> 1
+        OUTGOING  -> 2
+        MISSED    -> 3
+        REJECTED  -> 5
+        VOICEMAIL -> 4
+        BLOCKED   -> 6
+    }
+
     companion object {
         /**
          * Converts from [android.provider.CallLog.Calls] type integer to [RecentCallType].
@@ -54,16 +64,6 @@ enum class RecentCallType {
             4 -> VOICEMAIL
             6 -> BLOCKED
             else -> INCOMING
-        }
-
-        /** Returns the [android.provider.CallLog.Calls] integer for this type. */
-        fun RecentCallType.toSystemValue(): Int = when (this) {
-            INCOMING  -> 1
-            OUTGOING  -> 2
-            MISSED    -> 3
-            REJECTED  -> 5
-            VOICEMAIL -> 4
-            BLOCKED   -> 6
         }
     }
 }

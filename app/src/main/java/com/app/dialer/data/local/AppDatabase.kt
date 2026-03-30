@@ -90,16 +90,16 @@ abstract class AppDatabase : RoomDatabase() {
          *
          * @param context Application context — use [androidx.hilt.android.qualifiers.ApplicationContext].
          */
+        // Room 2.6.1: the no-arg fallbackToDestructiveMigration() is deprecated but the
+        // dropAllTables parameter overload was added in a later Room version.
+        @Suppress("DEPRECATION")
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 DATABASE_NAME
             )
-                // dropAllTables = false: preserves any app-managed tables not tracked
-                // by Room entities on destructive migration (e.g. FTS tables).
-                // Room 2.6.0+ requires the explicit boolean; the no-arg overload is deprecated.
-                .fallbackToDestructiveMigration(dropAllTables = false)
+                .fallbackToDestructiveMigration()
                 .build()
     }
 }
