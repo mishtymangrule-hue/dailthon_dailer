@@ -54,8 +54,11 @@ fun AppNavGraph(
         ) {
             composable(route = NavRoutes.Dialer.route) {
                 DialerScreen(
-                    onNavigateToCall = { callId ->
-                        navController.navigate(NavRoutes.InCall.createRoute(callId))
+                    onNavigateToInCall = { phoneNumber, _ ->
+                        navController.navigate(NavRoutes.InCall.createRoute(phoneNumber))
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(NavRoutes.Settings.route)
                     }
                 )
             }

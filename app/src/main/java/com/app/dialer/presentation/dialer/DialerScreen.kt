@@ -1,12 +1,13 @@
 package com.app.dialer.presentation.dialer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,242 +17,224 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.dialer.R
-import com.app.dialer.presentation.theme.ElectricBlue
-import com.app.dialer.presentation.theme.neumorphicSurface
+import com.app.dialer.domain.model.SimCard
+import com.app.dialer.presentation.dialer.components.CallButton
+import com.app.dialer.presentation.dialer.components.DeleteButton
+import com.app.dialer.presentation.dialer.components.DialerInputField
+import com.app.dialer.presentation.dialer.components.DialerTopBar
+import com.app.dialer.presentation.dialer.components.KeypadGrid
+import com.app.dialer.presentation.dialer.components.SimSelectorDialog
+import com.app.dialer.presentation.dialer.components.SuggestedContactsList
+import com.app.dialer.presentation.dialer.components.VoicemailButton
 
 /**
- * Dialer / keypad screen — placeholder shell for Prompt 1.
+ * Root composable for the Dialer / keypad screen.
  *
- * Contains a functional digit display and keypad grid so layout composition
- * can be verified. Full dial / call logic will be wired in a subsequent prompt.
+ * Wires [DialerViewModel] state → UI components, and routes one-time [DialerEvent]s
+ * to navigation, snackbar, or dialog actions.
  *
- * @param onNavigateToCall  Called with a phone number string when the user
- *                          presses the call button. No-op at this stage.
+ * @param viewModel            Hilt ViewModel, injected automatically.
+ * @param onNavigateToInCall   Called with (phoneNumber, simCard?) to push the in-call screen.
+ * @param onNavigateToSettings Called when the user taps Settings from the overflow menu.
  */
 @Composable
 fun DialerScreen(
-    onNavigateToCall: (String) -> Unit = {}
+    viewModel: DialerViewModel = hiltViewModel(),
+    onNavigateToInCall: (String, SimCard?) -> Unit = { _, _ -> },
+    onNavigateToSettings: () -> Unit = {}
 ) {
-    var dialedNumber by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showSimSelector by remember { mutableStateOf(false) }
+    var availableSims by remember { mutableStateOf<List<SimCard>>(emptyList()) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp)
-            .navigationBarsPadding(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── App logo header ───────────────────────────────────────────────
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.in_app_logo),
-                contentDescription = "Dailathon logo",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(56.dp)
-            )
-            Spacer(modifier = Modifier.size(12.dp))
-            Column(horizontalAlignment = Alignment.Start) {
-                Text(
-                    text = "Dailathon",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = "Every Call Matters",
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+    // Collect one-time events
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is DialerEvent.NavigateToInCall ->
+                    onNavigateToInCall(event.phoneNumber, event.simCard)
+                is DialerEvent.ShowSimSelector -> {
+                    availableSims = event.availableSims
+                    showSimSelector = true
+                }
+                is DialerEvent.ShowError ->
+                    snackbarHostState.showSnackbar(event.message)
+                is DialerEvent.ShowPermissionRationale ->
+                    snackbarHostState.showSnackbar("Phone permission required to make calls")
+                is DialerEvent.CopyToClipboard -> { /* handled inside DialerInputField */ }
+                is DialerEvent.CallInitiated -> { /* navigation driven by NavigateToInCall */ }
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(16.dp))
+    // SIM selector dialog – rendered as an overlay above the scaffold content
+    if (showSimSelector) {
+        SimSelectorDialog(
+            sims = availableSims,
+            onSimSelected = { sim ->
+                showSimSelector = false
+                viewModel.onSimSelected(sim)
+            },
+            onDismiss = { showSimSelector = false }
+        )
+    }
 
-        // ── Number display ────────────────────────────────────────────────
-        Box(
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            DialerTopBar(
+                onOpenSettings = onNavigateToSettings,
+                onOpenSearch = { /* TODO: open contact search */ }
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        // Derive display state from uiState (empty defaults for Idle / Error)
+        val inputState = when (val s = uiState) {
+            is DialerUiState.Dialing -> s.input
+            else -> DialerInputState(rawInput = "", formattedInput = "", isValid = false, cursorPosition = 0)
+        }
+        val suggestions = when (val s = uiState) {
+            is DialerUiState.Dialing -> s.suggestions
+            else -> emptyList()
+        }
+
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(72.dp),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(paddingValues)
+                .navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // ── In-app logo header ────────────────────────────────────────
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 4.dp)
             ) {
-                Text(
-                    text = dialedNumber,
-                    style = MaterialTheme.typography.displayMedium.copy(fontSize = 36.sp),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
+                Image(
+                    painter = painterResource(id = R.drawable.in_app_logo),
+                    contentDescription = "Dailathon logo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(48.dp)
                 )
-                if (dialedNumber.isNotEmpty()) {
-                    IconButton(
-                        onClick = { dialedNumber = dialedNumber.dropLast(1) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Backspace,
-                            contentDescription = "Delete digit",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    // Reserve space so number text stays centred when backspace is hidden
-                    Spacer(modifier = Modifier.size(48.dp))
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ── Keypad grid ───────────────────────────────────────────────────
-        KeypadGrid(
-            onDigitEntered = { digit ->
-                if (dialedNumber.length < 15) {
-                    dialedNumber += digit
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        // ── Call button ───────────────────────────────────────────────────
-        FloatingActionButton(
-            onClick = {
-                if (dialedNumber.isNotEmpty()) {
-                    onNavigateToCall(dialedNumber)
-                }
-            },
-            containerColor = ElectricBlue,
-            contentColor = Color.White,
-            shape = CircleShape,
-            modifier = Modifier.size(72.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Call,
-                contentDescription = "Call",
-                modifier = Modifier.size(32.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-}
-
-@Composable
-private fun KeypadGrid(
-    onDigitEntered: (String) -> Unit
-) {
-    val keys = listOf(
-        listOf("1" to null, "2" to "ABC", "3" to "DEF"),
-        listOf("4" to "GHI", "5" to "JKL", "6" to "MNO"),
-        listOf("7" to "PQRS", "8" to "TUV", "9" to "WXYZ"),
-        listOf("*" to null, "0" to "+", "#" to null)
-    )
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        keys.forEach { row ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                row.forEach { (digit, letters) ->
-                    KeypadButton(
-                        digit = digit,
-                        letters = letters,
-                        onClick = { onDigitEntered(digit) },
-                        modifier = Modifier.weight(1f)
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(
+                        text = "Dailathon",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "Every Call Matters",
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-        }
-    }
-}
 
-@Composable
-private fun KeypadButton(
-    digit: String,
-    letters: String?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // Track press state via InteractionSource so neumorphic elevation responds correctly
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
+            // ── Phone number input field ──────────────────────────────────
+            DialerInputField(
+                state = inputState,
+                onPasteRequest = { viewModel.onPasteInput(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-    Box(
-        modifier = modifier
-            .height(64.dp)
-            // neumorphicSurface MUST precede clip so its drawBehind shadows are rendered
-            // outside the composable's bounds before the GraphicsLayer clip is applied.
-            // Placing clip() first would confine the shadow to the button's own area.
-            .neumorphicSurface(
-                cornerRadius = 16.dp,
-                elevation = if (isPressed) 2.dp else 6.dp,
-                isPressed = isPressed
-            )
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = digit,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            if (letters != null) {
-                Text(
-                    text = letters,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            // ── Contact suggestions (visible only while input is non-empty)
+            AnimatedVisibility(
+                visible = suggestions.isNotEmpty() && inputState.rawInput.isNotEmpty(),
+                enter = fadeIn(tween(180)) + slideInVertically(
+                    initialOffsetY = { -it / 2 },
+                    animationSpec = tween(180)
+                ),
+                exit = fadeOut(tween(150)) + slideOutVertically(
+                    targetOffsetY = { -it / 2 },
+                    animationSpec = tween(150)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .weight(1f, fill = false)
+            ) {
+                SuggestedContactsList(
+                    contacts = suggestions,
+                    onContactSelected = { viewModel.onContactSelected(it) },
+                    onContactCallDirect = { contact ->
+                        viewModel.onContactSelected(contact)
+                        viewModel.onCallPressed()
+                    }
                 )
             }
+
+            // ── Keypad ────────────────────────────────────────────────────
+            KeypadGrid(
+                onDigitPressed = { digit ->
+                    viewModel.onDigitPressed(digit.digit)
+                    viewModel.playDtmfTone(digit.digit)
+                },
+                onAsteriskLongPress = { viewModel.onDigitPressed(",") },
+                onZeroLongPress = {
+                    viewModel.onDeletePressed()
+                    viewModel.onDigitPressed("+")
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // ── Bottom row: voicemail | call | delete ─────────────────────
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .padding(horizontal = 24.dp, vertical = 4.dp)
+            ) {
+                VoicemailButton(
+                    onClick = { /* TODO: navigate to voicemail */ },
+                    hasUnread = false
+                )
+                CallButton(
+                    onClick = { viewModel.onCallPressed() },
+                    isEnabled = inputState.rawInput.isNotEmpty()
+                )
+                DeleteButton(
+                    onClick = { viewModel.onDeletePressed() },
+                    onLongClick = { viewModel.onDeleteLongPressed() },
+                    isVisible = inputState.rawInput.isNotEmpty()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

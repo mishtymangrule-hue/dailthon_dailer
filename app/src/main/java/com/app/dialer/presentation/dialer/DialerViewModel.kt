@@ -20,6 +20,8 @@ import com.app.dialer.domain.usecase.InitiateCallUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -58,6 +60,7 @@ import javax.inject.Inject
  * chosen a SIM receive a [DialerEvent.ShowSimSelector] event; the flow resumes
  * when [onSimSelected] is called.
  */
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class DialerViewModel @Inject constructor(
     @ApplicationContext private val context: Context,

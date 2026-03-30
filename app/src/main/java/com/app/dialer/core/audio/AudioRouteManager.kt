@@ -2,6 +2,7 @@ package com.app.dialer.core.audio
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioDeviceInfo
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.ToneGenerator
@@ -72,27 +73,48 @@ class AudioRouteManager @Inject constructor(
      */
     fun setRoute(route: AudioRoute) {
         try {
-            when (route) {
-                AudioRoute.EARPIECE -> {
-                    audioManager.isSpeakerphoneOn = false
-                    audioManager.isBluetoothScoOn = false
-                    audioManager.mode = AudioManager.MODE_IN_CALL
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // API 31+: use AudioDeviceInfo-based routing; legacy speakerphone/SCO
+                // setters are deprecated. MODE still applies for call audio policy.
+                when (route) {
+                    AudioRoute.EARPIECE -> audioManager.mode = AudioManager.MODE_IN_CALL
+                    AudioRoute.SPEAKER  -> audioManager.mode = AudioManager.MODE_IN_CALL
+                    AudioRoute.BLUETOOTH -> audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+                    AudioRoute.WIRED_HEADSET -> audioManager.mode = AudioManager.MODE_IN_CALL
                 }
-                AudioRoute.SPEAKER -> {
-                    audioManager.isSpeakerphoneOn = true
-                    audioManager.isBluetoothScoOn = false
-                    audioManager.mode = AudioManager.MODE_IN_CALL
+                val deviceType = when (route) {
+                    AudioRoute.EARPIECE     -> AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
+                    AudioRoute.SPEAKER      -> AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+                    AudioRoute.BLUETOOTH    -> AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                    AudioRoute.WIRED_HEADSET -> AudioDeviceInfo.TYPE_WIRED_HEADSET
                 }
-                AudioRoute.BLUETOOTH -> {
-                    audioManager.startBluetoothSco()
-                    audioManager.isBluetoothScoOn = true
-                    audioManager.isSpeakerphoneOn = false
-                    audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-                }
-                AudioRoute.WIRED_HEADSET -> {
-                    audioManager.isSpeakerphoneOn = false
-                    audioManager.isBluetoothScoOn = false
-                    audioManager.mode = AudioManager.MODE_IN_CALL
+                val device = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                    .firstOrNull { it.type == deviceType }
+                if (device != null) audioManager.setCommunicationDevice(device)
+            } else {
+                @Suppress("DEPRECATION")
+                when (route) {
+                    AudioRoute.EARPIECE -> {
+                        audioManager.isSpeakerphoneOn = false
+                        audioManager.isBluetoothScoOn = false
+                        audioManager.mode = AudioManager.MODE_IN_CALL
+                    }
+                    AudioRoute.SPEAKER -> {
+                        audioManager.isSpeakerphoneOn = true
+                        audioManager.isBluetoothScoOn = false
+                        audioManager.mode = AudioManager.MODE_IN_CALL
+                    }
+                    AudioRoute.BLUETOOTH -> {
+                        audioManager.startBluetoothSco()
+                        audioManager.isBluetoothScoOn = true
+                        audioManager.isSpeakerphoneOn = false
+                        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+                    }
+                    AudioRoute.WIRED_HEADSET -> {
+                        audioManager.isSpeakerphoneOn = false
+                        audioManager.isBluetoothScoOn = false
+                        audioManager.mode = AudioManager.MODE_IN_CALL
+                    }
                 }
             }
             _currentRoute.value = route
@@ -112,8 +134,21 @@ class AudioRouteManager @Inject constructor(
     fun getAvailableRoutes(): List<AudioRoute> = buildList {
         add(AudioRoute.EARPIECE)
         add(AudioRoute.SPEAKER)
-        if (audioManager.isWiredHeadsetOn) add(AudioRoute.WIRED_HEADSET)
-        if (audioManager.isBluetoothScoAvailableOffCall) add(AudioRoute.BLUETOOTH)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val outputDevices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            if (outputDevices.any { it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                        it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES }) {
+                add(AudioRoute.WIRED_HEADSET)
+            }
+            if (outputDevices.any { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }) {
+                add(AudioRoute.BLUETOOTH)
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            if (audioManager.isWiredHeadsetOn) add(AudioRoute.WIRED_HEADSET)
+            @Suppress("DEPRECATION")
+            if (audioManager.isBluetoothScoAvailableOffCall) add(AudioRoute.BLUETOOTH)
+        }
     }
 
     // ─── DTMF ─────────────────────────────────────────────────────────────────

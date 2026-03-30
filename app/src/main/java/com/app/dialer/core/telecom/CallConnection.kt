@@ -113,6 +113,8 @@ class CallConnection(
         STATE_ACTIVE       -> CallState.ACTIVE
         STATE_HOLDING      -> CallState.HOLDING
         STATE_DISCONNECTED -> CallState.DISCONNECTED
-        else               -> CallState.ACTIVE
+        // STATE_INITIALIZING (0) and STATE_NEW (1) are transient pre-dial states;
+        // treat as DIALING to avoid misleading ACTIVE state on the bus.
+        else               -> CallState.DIALING
     }
 }
