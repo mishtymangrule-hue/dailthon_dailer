@@ -202,7 +202,6 @@ fun DialerScreen(
                 },
                 onAsteriskLongPress = { viewModel.onDigitPressed(",") },
                 onZeroLongPress = {
-                    viewModel.onDeletePressed()
                     viewModel.onDigitPressed("+")
                 },
                 modifier = Modifier.fillMaxWidth()

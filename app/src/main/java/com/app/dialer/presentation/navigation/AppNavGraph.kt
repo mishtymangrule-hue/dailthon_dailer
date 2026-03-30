@@ -13,6 +13,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.app.dialer.presentation.calllog.CallLogScreen
 import com.app.dialer.presentation.contacts.ContactsScreen
+import com.app.dialer.presentation.dialer.DialerEntryPoint
 import com.app.dialer.presentation.dialer.DialerScreen
 import com.app.dialer.presentation.incall.InCallScreen
 import com.app.dialer.presentation.settings.SettingsScreen
@@ -53,7 +54,7 @@ fun AppNavGraph(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(route = NavRoutes.Dialer.route) {
-                DialerScreen(
+                DialerEntryPoint(
                     onNavigateToInCall = { phoneNumber, _ ->
                         navController.navigate(NavRoutes.InCall.createRoute(phoneNumber))
                     },

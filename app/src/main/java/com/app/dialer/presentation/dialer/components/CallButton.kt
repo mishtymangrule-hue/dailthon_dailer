@@ -1,8 +1,6 @@
 package com.app.dialer.presentation.dialer.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -30,7 +28,6 @@ import com.app.dialer.presentation.theme.SoftTeal
 import com.app.dialer.presentation.theme.neumorphicSurface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.runtime.derivedStateOf
 
 /**
  * Primary call FAB-style button.
@@ -53,22 +50,8 @@ fun CallButton(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // Infinite pulse animation — only runs when enabled
+    // Scale pulse: oscillates 1.0 ↔ 1.06 while enabled; snaps back to 1.0 when disabled.
     val pulseScale = remember { Animatable(1f) }
-    LaunchedEffect(isEnabled) {
-        if (isEnabled) {
-            pulseScale.animateTo(
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 1200),
-                    repeatMode = RepeatMode.Reverse
-                )
-            )
-        } else {
-            pulseScale.snapTo(1f)
-        }
-    }
-    // Run separate pulse oscillation when enabled
     LaunchedEffect(isEnabled) {
         if (isEnabled) {
             while (true) {
@@ -81,6 +64,8 @@ fun CallButton(
                     animationSpec = tween(durationMillis = 600)
                 )
             }
+        } else {
+            pulseScale.snapTo(1f)
         }
     }
 

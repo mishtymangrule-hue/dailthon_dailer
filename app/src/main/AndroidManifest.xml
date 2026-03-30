@@ -46,6 +46,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Exempt from Doze mode so incoming calls are reliably delivered -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Overlay permission required on some OEM ROMs for full-screen incoming-call UI -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- Feature declarations -->
     <uses-feature
@@ -110,9 +114,9 @@
             </intent-filter>
         </activity>
 
-        <!-- InCallService stub -->
+        <!-- InCallService — handles active call UI, audio, and call controls -->
         <service
-            android:name=".core.service.DialerInCallService"
+            android:name=".core.telecom.InCallServiceImpl"
             android:exported="true"
             android:permission="android.permission.BIND_INCALL_SERVICE"
             tools:ignore="ExportedService">
@@ -127,9 +131,9 @@
             </intent-filter>
         </service>
 
-        <!-- CallScreeningService stub -->
+        <!-- CallScreeningService — screens incoming calls (block-list check) -->
         <service
-            android:name=".core.service.DialerCallScreeningService"
+            android:name=".core.telecom.CallScreeningServiceImpl"
             android:exported="true"
             android:permission="android.permission.BIND_SCREENING_SERVICE"
             tools:ignore="ExportedService">
@@ -137,6 +141,36 @@
                 <action android:name="android.telecom.CallScreeningService" />
             </intent-filter>
         </service>
+
+        <!-- ConnectionService — handles outgoing call registration with Telecom -->
+        <service
+            android:name=".core.telecom.CallConnectionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService" />
+            </intent-filter>
+        </service>
+
+        <!-- CallManagerService — foreground service powering the in-call notification -->
+        <service
+            android:name=".core.telecom.CallManagerService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall" />
+
+        <!-- CallBroadcastReceiver — handles in-notification call-control actions -->
+        <receiver
+            android:name=".core.telecom.CallBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.app.dialer.action.ANSWER_CALL" />
+                <action android:name="com.app.dialer.action.REJECT_CALL" />
+                <action android:name="com.app.dialer.action.END_CALL" />
+                <action android:name="com.app.dialer.action.TOGGLE_MUTE" />
+                <action android:name="com.app.dialer.action.TOGGLE_SPEAKER" />
+            </intent-filter>
+        </receiver>
 
         <!-- Boot receiver -->
         <receiver
