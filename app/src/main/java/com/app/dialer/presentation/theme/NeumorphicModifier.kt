@@ -1,5 +1,6 @@
 package com.app.dialer.presentation.theme
 
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
@@ -7,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -51,46 +53,49 @@ fun Modifier.neumorphicSurface(
     val resolvedLightShadow = lightShadowColor ?: neumorphicColors.shadowLight
     val resolvedDarkShadow = darkShadowColor ?: neumorphicColors.shadowDark
 
+    // Compute pixel values here (composed scope) so they are not re-derived per draw frame.
+    val density = LocalDensity.current
+    val elevationPx = with(density) { elevation.toPx() }
+    val cornerRadiusPx = with(density) { cornerRadius.toPx() }
+    val blurRadiusPx = elevationPx * 2f
+
+    // Negative offset → upper-left (light source); positive → lower-right (depth).
+    // When pressed the directions flip to simulate an inset state.
+    val lightOffset = if (isPressed) elevationPx else -elevationPx
+    val darkOffset = -lightOffset   // always the opposite direction
+
+    // Remember Paint objects and only recreate them when the inputs that affect them change.
+    // Allocating Paint inside drawBehind/drawIntoCanvas would create two new objects on every
+    // draw frame — with 12 keypad buttons each holding this modifier that is 24 allocations
+    // per frame, creating constant GC pressure during any UI animation.
+    val lightPaint = remember(resolvedLightShadow, elevationPx, isPressed) {
+        Paint().apply {
+            asFrameworkPaint().apply {
+                isAntiAlias = true
+                color = android.graphics.Color.TRANSPARENT
+                setShadowLayer(blurRadiusPx, lightOffset, lightOffset, resolvedLightShadow.toArgb())
+            }
+        }
+    }
+
+    val darkPaint = remember(resolvedDarkShadow, elevationPx, isPressed) {
+        Paint().apply {
+            asFrameworkPaint().apply {
+                isAntiAlias = true
+                color = android.graphics.Color.TRANSPARENT
+                setShadowLayer(blurRadiusPx, darkOffset, darkOffset, resolvedDarkShadow.toArgb())
+            }
+        }
+    }
+
     drawBehind {
-        val elevationPx = elevation.toPx()
-        val cornerRadiusPx = cornerRadius.toPx()
-        val blurRadiusPx = elevationPx * 2f
-
         drawIntoCanvas { canvas ->
-            // Light (highlight) shadow — upper-left
-            val lightPaint = Paint().apply {
-                asFrameworkPaint().apply {
-                    isAntiAlias = true
-                    color = android.graphics.Color.TRANSPARENT
-                    setShadowLayer(
-                        blurRadiusPx,
-                        if (isPressed) elevationPx else -elevationPx,
-                        if (isPressed) elevationPx else -elevationPx,
-                        resolvedLightShadow.toArgb()
-                    )
-                }
-            }
-
-            // Dark (depth) shadow — lower-right
-            val darkPaint = Paint().apply {
-                asFrameworkPaint().apply {
-                    isAntiAlias = true
-                    color = android.graphics.Color.TRANSPARENT
-                    setShadowLayer(
-                        blurRadiusPx,
-                        if (isPressed) -elevationPx else elevationPx,
-                        if (isPressed) -elevationPx else elevationPx,
-                        resolvedDarkShadow.toArgb()
-                    )
-                }
-            }
-
             val left = 0f
             val top = 0f
             val right = size.width
             val bottom = size.height
 
-            // Draw light shadow pass
+            // Light (highlight) shadow pass — upper-left
             canvas.drawRoundRect(
                 left = left,
                 top = top,
@@ -101,7 +106,7 @@ fun Modifier.neumorphicSurface(
                 paint = lightPaint
             )
 
-            // Draw dark shadow pass
+            // Dark (depth) shadow pass — lower-right
             canvas.drawRoundRect(
                 left = left,
                 top = top,
