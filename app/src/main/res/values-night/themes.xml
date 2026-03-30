@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Night-mode activity theme.
+
+  Uses android:Theme.Material.NoActionBar (the dark framework Material theme)
+  so the Activity window background is dark (#1C1C1E equivalent) before Compose
+  renders its first frame. This prevents the white window-background flash that
+  occurs with the light-only values/themes.xml on devices running in dark mode.
+-->
+<resources>
+    <style name="Theme.Dialer" parent="android:Theme.Material.NoActionBar" />
+</resources>
