@@ -1,34 +1,16 @@
 package com.app.dialer.data.local
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import com.app.dialer.data.model.CallLogEntity
-import com.app.dialer.data.model.ContactEntity
-
 /**
- * Room database for the Dialer app.
+ * Superseded by [AppDatabase] (Prompt 2A).
  *
- * Entities and DAOs expand across prompts as modules are added.
- * Version starts at 1; migrations will be added as the schema evolves.
- *
- * Schema export is disabled ([exportSchema] = false) during development.
- * Enable and configure a schema export directory in build.gradle.kts via:
- * ```
- * ksp { arg("room.schemaLocation", "$projectDir/schemas") }
- * ```
- * before enabling exportSchema = true for production builds.
+ * [AppDatabase] consolidates all entities (RecentCallEntity, CallLogEntity,
+ * ContactEntity) into a single Room database and is provided as a Hilt
+ * singleton via [com.app.dialer.core.di.DatabaseModule]. This file is kept
+ * as a tombstone to preserve history; it must not be referenced in new code.
  */
-@Database(
-    entities = [
-        CallLogEntity::class,
-        ContactEntity::class
-    ],
-    version = 1,
-    exportSchema = false
+@Deprecated(
+    message = "Use AppDatabase instead. DialerDatabase is superseded as of Prompt 2A.",
+    replaceWith = ReplaceWith("AppDatabase", "com.app.dialer.data.local.AppDatabase"),
+    level = DeprecationLevel.ERROR
 )
-abstract class DialerDatabase : RoomDatabase() {
-
-    abstract fun callLogDao(): CallLogDao
-
-    abstract fun contactDao(): ContactDao
-}
+object DialerDatabaseTombstone

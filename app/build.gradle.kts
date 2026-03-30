@@ -66,6 +66,12 @@ android {
     }
 }
 
+ksp {
+    // Instructs Room's KSP processor where to write generated schema JSON files.
+    // Commit the schemas/ directory to version control to track migrations over time.
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
