@@ -1,2 +1,0 @@
--keep,allowobfuscation,allowshrinking class com.app.dialer.presentation.dialer.DialerViewModel
--keep,allowobfuscation,allowshrinking class com.app.dialer.presentation.dialer.DialerViewModel
