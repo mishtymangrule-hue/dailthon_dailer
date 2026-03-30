@@ -3,7 +3,7 @@ package com.app.dialer.data.repository
 import com.app.dialer.data.local.ContactDao
 import com.app.dialer.data.model.ContactEntity
 import com.app.dialer.domain.model.Contact
-import com.app.dialer.domain.model.PhoneNumber
+import com.app.dialer.domain.model.ContactPhoneNumber
 import com.app.dialer.domain.model.PhoneNumberType
 import com.app.dialer.domain.repository.ContactRepository
 import kotlinx.coroutines.flow.Flow
@@ -47,7 +47,7 @@ class ContactRepositoryImpl @Inject constructor(
         id = contactId,
         displayName = displayName,
         phoneNumbers = listOf(
-            PhoneNumber(
+            ContactPhoneNumber(
                 number = phoneNumber,
                 type = PhoneNumberType.fromSystemValue(phoneType),
                 label = null

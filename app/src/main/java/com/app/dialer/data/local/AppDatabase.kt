@@ -9,12 +9,12 @@ import androidx.room.TypeConverters
 import com.app.dialer.data.model.CallLogEntity
 import com.app.dialer.data.model.ContactEntity
 import com.app.dialer.data.model.RecentCallEntity
-import com.app.dialer.domain.model.RecentCallType
+import com.app.dialer.domain.model.CallType
 
 // ─── Type converter ───────────────────────────────────────────────────────────
 
 /**
- * Room [TypeConverter] for [RecentCallType].
+ * Room [TypeConverter] for [CallType].
  *
  * Persists enum values as their [name] strings (e.g. "MISSED") so schema
  * values are human-readable and immune to enum ordinal changes.
@@ -22,11 +22,11 @@ import com.app.dialer.domain.model.RecentCallType
 class CallTypeConverter {
 
     @TypeConverter
-    fun fromRecentCallType(value: RecentCallType): String = value.name
+    fun fromCallType(value: CallType): String = value.name
 
     @TypeConverter
-    fun toRecentCallType(value: String): RecentCallType =
-        runCatching { RecentCallType.valueOf(value) }.getOrDefault(RecentCallType.INCOMING)
+    fun toCallType(value: String): CallType =
+        runCatching { CallType.valueOf(value) }.getOrDefault(CallType.INCOMING)
 }
 
 // ─── Database ─────────────────────────────────────────────────────────────────

@@ -5,12 +5,12 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.app.dialer.data.local.CallTypeConverter
-import com.app.dialer.domain.model.RecentCallType
+import com.app.dialer.domain.model.CallType
 
 /**
  * Room entity representing a recent-call entry in the dialer module's local database.
  *
- * [RecentCallType] is stored as its name String via [CallTypeConverter] — this
+ * [CallType] is stored as its name String via [CallTypeConverter] — this
  * makes schema values human-readable and safe across enum reorderings.
  */
 @Entity(tableName = "recent_calls")
@@ -31,7 +31,7 @@ data class RecentCallEntity(
 
     /** Call classification stored as its enum name (e.g. "MISSED"). */
     @ColumnInfo(name = "call_type")
-    val callType: RecentCallType,
+    val callType: CallType,
 
     /** Total duration of the answered call in seconds. 0 for missed / rejected / blocked. */
     @ColumnInfo(name = "duration_seconds")

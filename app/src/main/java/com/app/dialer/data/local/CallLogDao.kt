@@ -1,7 +1,6 @@
 package com.app.dialer.data.local
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -16,7 +15,7 @@ interface CallLogDao {
     fun observeAll(): Flow<List<CallLogEntity>>
 
     @Query("SELECT * FROM call_logs ORDER BY timestamp DESC LIMIT :limit")
-    fun observeRecent(limit: Int): Flow<List<CallLogEntity>>
+    fun getRecentCalls(limit: Int): Flow<List<CallLogEntity>>
 
     @Query("SELECT * FROM call_logs WHERE phone_number = :number ORDER BY timestamp DESC")
     fun observeByNumber(number: String): Flow<List<CallLogEntity>>
@@ -25,13 +24,10 @@ interface CallLogDao {
     suspend fun getById(id: Long): CallLogEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entry: CallLogEntity): Long
+    suspend fun insertCallLog(entry: CallLogEntity): Long
 
     @Update
-    suspend fun update(entry: CallLogEntity)
-
-    @Delete
-    suspend fun delete(entry: CallLogEntity)
+    suspend fun updateCallLog(entry: CallLogEntity)
 
     @Query("DELETE FROM call_logs WHERE id = :id")
     suspend fun deleteById(id: Long)
@@ -39,9 +35,12 @@ interface CallLogDao {
     @Query("DELETE FROM call_logs")
     suspend fun deleteAll()
 
+    @Query("UPDATE call_logs SET is_read = 1 WHERE id = :id")
+    suspend fun markAsRead(id: Long)
+
     @Query("UPDATE call_logs SET is_read = 1 WHERE phone_number = :number")
     suspend fun markReadByNumber(number: String)
 
-    @Query("SELECT COUNT(*) FROM call_logs WHERE is_read = 0 AND call_type = 3")
-    fun observeMissedCallCount(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM call_logs WHERE is_read = 0 AND call_type = 'MISSED'")
+    fun getUnreadMissedCallCount(): Flow<Int>
 }

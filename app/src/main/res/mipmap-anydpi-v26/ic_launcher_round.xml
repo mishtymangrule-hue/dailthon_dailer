@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Adaptive launcher icon (round) for API 26+.
-  The system clips this to a circle; background and foreground layers are the
-  same as the square variant since the adaptive icon framework handles shaping.
--->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@drawable/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <background android:drawable="@android:color/white" />
+    <foreground>
+        <inset
+            android:drawable="@drawable/app_logo"
+            android:inset="40%" />
+    </foreground>
 </adaptive-icon>

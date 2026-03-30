@@ -236,9 +236,12 @@ class DialerViewModel @Inject constructor(
 
     /** Clears all input and resets call-in-progress guard. */
     fun clearInput() {
+        isCallInProgress = false
         _rawInput.value = ""
         _selectedSim.value = null
-        isCallInProgress = false
+        // Update state immediately so callers don't need to wait for the async
+        // combine/flowOn(IO) pipeline to propagate the empty-input → Idle transition.
+        _uiState.value = DialerUiState.Idle
     }
 
     /**

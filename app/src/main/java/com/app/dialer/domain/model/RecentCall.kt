@@ -19,7 +19,7 @@ data class RecentCall(
     val id: Long,
     val contactName: String?,
     val phoneNumber: String,
-    val callType: RecentCallType,
+    val callType: CallType,
     val durationSeconds: Long,
     val timestamp: Long,
     val photoUri: Uri?,
@@ -33,7 +33,7 @@ data class RecentCall(
  * Values are aligned with [android.provider.CallLog.Calls] type constants where
  * a direct mapping exists.
  */
-enum class RecentCallType {
+enum class CallType {
     INCOMING,
     OUTGOING,
     MISSED,
@@ -53,10 +53,10 @@ enum class RecentCallType {
 
     companion object {
         /**
-         * Converts from [android.provider.CallLog.Calls] type integer to [RecentCallType].
+         * Converts from [android.provider.CallLog.Calls] type integer to [CallType].
          * Defaults to [INCOMING] for unrecognised values so that unknown entries are still surfaced.
          */
-        fun fromSystemValue(value: Int): RecentCallType = when (value) {
+        fun fromSystemValue(value: Int): CallType = when (value) {
             1 -> INCOMING
             2 -> OUTGOING
             3 -> MISSED

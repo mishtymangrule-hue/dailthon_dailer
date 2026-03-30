@@ -6,7 +6,7 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import app.cash.turbine.test
 import com.app.dialer.core.audio.AudioRouteManager
-import com.app.dialer.domain.model.DialerPhoneNumber
+import com.app.dialer.domain.model.PhoneNumber
 import com.app.dialer.domain.model.RecentCall
 import com.app.dialer.domain.model.SimCard
 import com.app.dialer.domain.model.SuggestedContact
@@ -87,7 +87,7 @@ class DialerViewModelTest {
         every { getRecentCalls(any()) } returns flowOf(emptyList<RecentCall>())
         every { formatPhoneNumber(any(), any()) } answers {
             val input = firstArg<String>()
-            DialerPhoneNumber(
+            PhoneNumber(
                 rawInput = input,
                 formatted = input,
                 isValid = input.length >= 7,

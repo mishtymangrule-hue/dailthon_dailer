@@ -1,21 +1,21 @@
 package com.app.dialer.domain.usecase
 
 import android.telephony.PhoneNumberUtils
-import com.app.dialer.domain.model.DialerPhoneNumber
+import com.app.dialer.domain.model.PhoneNumber
 import java.util.Locale
 import javax.inject.Inject
 
 /**
  * Pure-logic use case that formats a raw dial-pad input string into a
- * validated [DialerPhoneNumber] domain model.
+ * validated [PhoneNumber] domain model.
  *
  * Uses only platform APIs ([PhoneNumberUtils]) — no third-party libphonenumber.
  *
  * ### Formatting rules
- * - Empty / blank input → returns [DialerPhoneNumber.EMPTY].
+ * - Empty / blank input → returns [PhoneNumber.EMPTY].
  * - Strips characters that are not digits, `+`, `,`, `;`, or `p` (pause extensions).
  * - Preserves a leading `+` for international numbers.
- * - Extension separators (`,`, `;`, `p`) are preserved in [DialerPhoneNumber.rawInput]
+ * - Extension separators (`,`, `;`, `p`) are preserved in [PhoneNumber.rawInput]
  *   but stripped before the validity length check.
  * - Delegates formatting to [PhoneNumberUtils.formatNumber] with the given [countryCode].
  *   Falls back to the stripped input when the platform formatter returns null.
@@ -29,8 +29,8 @@ class FormatPhoneNumberUseCase @Inject constructor() {
     operator fun invoke(
         rawInput: String,
         countryCode: String = "IN"
-    ): DialerPhoneNumber {
-        if (rawInput.isBlank()) return DialerPhoneNumber.EMPTY
+    ): PhoneNumber {
+        if (rawInput.isBlank()) return PhoneNumber.EMPTY
 
         // Normalise: keep digits, leading '+', and extension separators , ; p
         val normalised = buildString {
@@ -43,7 +43,7 @@ class FormatPhoneNumberUseCase @Inject constructor() {
             }
         }
 
-        if (normalised.isEmpty()) return DialerPhoneNumber.EMPTY
+        if (normalised.isEmpty()) return PhoneNumber.EMPTY
 
         // Dialable digits only (strip extension separators for length/validity checks)
         val dialableOnly = normalised.filter { it.isDigit() || it == '+' }
@@ -57,7 +57,7 @@ class FormatPhoneNumberUseCase @Inject constructor() {
             countryCode.uppercase(Locale.ROOT)
         ) ?: normalised
 
-        return DialerPhoneNumber(
+        return PhoneNumber(
             rawInput = rawInput,
             formatted = formatted,
             isValid = isValid,

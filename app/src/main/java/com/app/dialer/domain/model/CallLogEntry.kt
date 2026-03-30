@@ -8,7 +8,7 @@ data class CallLogEntry(
     val id: Long,
     val phoneNumber: String,
     val contactName: String?,
-    val callType: CallType,
+    val callType: CallLogType,
     val timestamp: Long,
     val durationSeconds: Long,
     val isRead: Boolean
@@ -16,8 +16,9 @@ data class CallLogEntry(
 
 /**
  * Call type classification matching Android's [android.provider.CallLog.Calls] constants.
+ * Used exclusively by the legacy [CallLogEntry] / [CallLogRepository] pipeline.
  */
-enum class CallType(val systemValue: Int) {
+enum class CallLogType(val systemValue: Int) {
     Incoming(1),
     Outgoing(2),
     Missed(3),
@@ -26,7 +27,7 @@ enum class CallType(val systemValue: Int) {
     Unknown(0);
 
     companion object {
-        fun fromSystemValue(value: Int): CallType =
+        fun fromSystemValue(value: Int): CallLogType =
             entries.firstOrNull { it.systemValue == value } ?: Unknown
     }
 }

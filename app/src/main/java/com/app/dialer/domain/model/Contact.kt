@@ -7,7 +7,7 @@ package com.app.dialer.domain.model
 data class Contact(
     val id: Long,
     val displayName: String,
-    val phoneNumbers: List<PhoneNumber>,
+    val phoneNumbers: List<ContactPhoneNumber>,
     val photoUri: String?,
     val isStarred: Boolean
 )
@@ -15,7 +15,7 @@ data class Contact(
 /**
  * Represents a single phone number associated with a [Contact].
  */
-data class PhoneNumber(
+data class ContactPhoneNumber(
     val number: String,
     val type: PhoneNumberType,
     val label: String?

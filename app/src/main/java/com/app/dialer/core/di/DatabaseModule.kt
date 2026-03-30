@@ -18,7 +18,7 @@ import javax.inject.Singleton
  * [AppDatabase] supersedes the previous [com.app.dialer.data.local.DialerDatabase]
  * introduced in Prompt 1. It consolidates all entities (RecentCallEntity,
  * CallLogEntity, ContactEntity) and includes the [com.app.dialer.data.local.CallTypeConverter]
- * for [com.app.dialer.domain.model.RecentCallType] ↔ String persistence.
+ * for [com.app.dialer.domain.model.CallType] ↔ String persistence.
  */
 @Module
 @InstallIn(SingletonComponent::class)
