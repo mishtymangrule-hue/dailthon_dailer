@@ -125,122 +125,134 @@ fun DialerScreen(
             else -> emptyList()
         }
 
-        Column(
+        // Modern, modular, neumorphic bento layout
+        androidx.compose.foundation.layout.Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── In-app logo header ────────────────────────────────────────
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+            // ── Logo and tagline in a neumorphic bento card ──────────────
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 4.dp)
+                    .padding(top = 12.dp, bottom = 8.dp)
+                    .neumorphicSurface(cornerRadius = 24.dp, elevation = 8.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.in_app_logo),
-                    contentDescription = "Dailathon logo",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(48.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column(horizontalAlignment = Alignment.Start) {
-                    Text(
-                        text = "Dailathon",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.in_app_logo),
+                        contentDescription = "Dailathon logo",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(48.dp)
                     )
-                    Text(
-                        text = "Every Call Matters",
-                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(horizontalAlignment = Alignment.Start) {
+                        Text(
+                            text = "Dailathon",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = "Every Call Matters",
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // ── Input field in a bento card ─────────────────────────────
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .neumorphicSurface(cornerRadius = 20.dp, elevation = 6.dp)
+            ) {
+                DialerInputField(
+                    state = inputState,
+                    onPasteRequest = { viewModel.onPasteInput(it) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // ── Suggestions in a bento card (if present) ───────────────
+            if (suggestions.isNotEmpty() && inputState.rawInput.isNotEmpty()) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .neumorphicSurface(cornerRadius = 20.dp, elevation = 4.dp)
+                ) {
+                    SuggestedContactsList(
+                        contacts = suggestions,
+                        onContactSelected = { viewModel.onContactSelected(it) },
+                        onContactCallDirect = { contact ->
+                            viewModel.onContactSelected(contact)
+                            viewModel.onCallPressed()
+                        }
                     )
                 }
             }
 
-            // ── Phone number input field ──────────────────────────────────
-            DialerInputField(
-                state = inputState,
-                onPasteRequest = { viewModel.onPasteInput(it) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // ── Contact suggestions (visible only while input is non-empty)
-            AnimatedVisibility(
-                visible = suggestions.isNotEmpty() && inputState.rawInput.isNotEmpty(),
-                enter = fadeIn(tween(180)) + slideInVertically(
-                    initialOffsetY = { -it / 2 },
-                    animationSpec = tween(180)
-                ),
-                exit = fadeOut(tween(150)) + slideOutVertically(
-                    targetOffsetY = { -it / 2 },
-                    animationSpec = tween(150)
-                ),
+            // ── Keypad in a bento card ────────────────────────────────
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .weight(1f, fill = false)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .neumorphicSurface(cornerRadius = 28.dp, elevation = 10.dp)
             ) {
-                SuggestedContactsList(
-                    contacts = suggestions,
-                    onContactSelected = { viewModel.onContactSelected(it) },
-                    onContactCallDirect = { contact ->
-                        viewModel.onContactSelected(contact)
-                        viewModel.onCallPressed()
-                    }
-                )
-            }
-
-            // ── Keypad ────────────────────────────────────────────────────
-            KeypadGrid(
-                onDigitPressed = { digit ->
-                    viewModel.onDigitPressed(digit.digit)
-                    viewModel.playDtmfTone(digit.digit)
-                },
-                onAsteriskLongPress = { viewModel.onDigitPressed(",") },
-                onZeroLongPress = {
-                    viewModel.onDigitPressed("+")
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // ── Bottom row: voicemail | call | delete ─────────────────────
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .padding(horizontal = 24.dp, vertical = 4.dp)
-            ) {
-                VoicemailButton(
-                    onClick = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Voicemail is not yet available in this version")
-                        }
+                KeypadGrid(
+                    onDigitPressed = { digit ->
+                        viewModel.onDigitPressed(digit.digit)
+                        viewModel.playDtmfTone(digit.digit)
                     },
-                    hasUnread = false
-                )
-                CallButton(
-                    onClick = { viewModel.onCallPressed() },
-                    isEnabled = inputState.rawInput.isNotEmpty()
-                )
-                DeleteButton(
-                    onClick = { viewModel.onDeletePressed() },
-                    onLongClick = { viewModel.onDeleteLongPressed() },
-                    isVisible = inputState.rawInput.isNotEmpty()
+                    onAsteriskLongPress = { viewModel.onDigitPressed(",") },
+                    onZeroLongPress = {
+                        viewModel.onDigitPressed("+")
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // ── Bottom row: voicemail | call | delete in a bento card ──
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .padding(horizontal = 32.dp, vertical = 8.dp)
+                    .neumorphicSurface(cornerRadius = 24.dp, elevation = 8.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .padding(horizontal = 24.dp, vertical = 4.dp)
+                ) {
+                    VoicemailButton(
+                        onClick = {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Voicemail is not yet available in this version")
+                            }
+                        },
+                        hasUnread = false
+                    )
+                    CallButton(
+                        onClick = { viewModel.onCallPressed() },
+                        isEnabled = inputState.rawInput.isNotEmpty()
+                    )
+                    DeleteButton(
+                        onClick = { viewModel.onDeletePressed() },
+                        onLongClick = { viewModel.onDeleteLongPressed() },
+                        isVisible = inputState.rawInput.isNotEmpty()
+                    )
+                }
+            }
         }
     }
 }

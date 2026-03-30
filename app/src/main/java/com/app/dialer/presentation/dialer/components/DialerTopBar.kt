@@ -42,12 +42,7 @@ fun DialerTopBar(
     var overflowExpanded by remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
-        title = {
-            Text(
-                text = "Dialer",
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
+        title = {}, // No redundant heading
         actions = {
             // Search
             IconButton(onClick = onOpenSearch) {

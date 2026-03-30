@@ -18,16 +18,43 @@ import androidx.compose.ui.Modifier
 fun CallLogScreen(
     onCallClick: (String) -> Unit = {}
 ) {
-    Box(
+    androidx.compose.foundation.layout.Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Recents",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        // Header bento card
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .neumorphicSurface(cornerRadius = 20.dp, elevation = 8.dp)
+        ) {
+            Text(
+                text = "Recents",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+            )
+        }
+
+        // Example: Empty state bento card (replace with real list in full impl)
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .neumorphicSurface(cornerRadius = 20.dp, elevation = 6.dp)
+        ) {
+            Text(
+                text = "No recent calls yet. Your call history will appear here.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)
+            )
+        }
+
+        // Add more bento cards for actions, filters, etc. as needed
     }
 }
