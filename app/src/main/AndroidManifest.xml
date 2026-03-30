@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
     <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
 
     <!-- SDK 23+ variants -->
     <uses-permission-sdk-23 android:name="android.permission.CALL_PHONE" />
@@ -32,6 +31,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission-sdk-23 android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <!-- SIM card -->
     <uses-permission android:name="android.permission.USE_SIM_CARD" />

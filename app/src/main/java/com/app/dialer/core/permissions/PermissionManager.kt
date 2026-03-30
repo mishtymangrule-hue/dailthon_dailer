@@ -7,7 +7,12 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionState
@@ -73,10 +78,11 @@ val ALL_DIALER_PERMISSIONS: List<String> = buildList {
 @OptIn(ExperimentalPermissionsApi::class)
 class PermissionManager(
     private val multiplePermissionsState: MultiplePermissionsState,
-    private val context: Context
+    private val context: Context,
+    private val hasRequestedOnceState: MutableState<Boolean>
 ) {
     /** Tracks whether [requestAllDialerPermissions] has been called at least once. */
-    private var hasRequestedOnce: Boolean = false
+    private var hasRequestedOnce: Boolean by hasRequestedOnceState
 
     /** True when every permission in [ALL_DIALER_PERMISSIONS] is granted. */
     val allGranted: Boolean
@@ -149,16 +155,18 @@ fun rememberPermissionManager(
     onPermissionsResult: (Map<String, Boolean>) -> Unit = {}
 ): PermissionManager {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val hasRequestedOnceState = rememberSaveable { mutableStateOf(false) }
 
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = ALL_DIALER_PERMISSIONS,
         onPermissionsResult = onPermissionsResult
     )
 
-    return remember(multiplePermissionsState) {
+    return remember(multiplePermissionsState, hasRequestedOnceState) {
         PermissionManager(
             multiplePermissionsState = multiplePermissionsState,
-            context = context
+            context = context,
+            hasRequestedOnceState = hasRequestedOnceState
         )
     }
 }

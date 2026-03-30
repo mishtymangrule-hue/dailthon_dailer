@@ -14,7 +14,6 @@ import androidx.navigation.navArgument
 import com.app.dialer.presentation.calllog.CallLogScreen
 import com.app.dialer.presentation.contacts.ContactsScreen
 import com.app.dialer.presentation.dialer.DialerEntryPoint
-import com.app.dialer.presentation.dialer.DialerScreen
 import com.app.dialer.presentation.incall.InCallScreen
 import com.app.dialer.presentation.settings.SettingsScreen
 
@@ -33,13 +32,9 @@ fun AppNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Hide bottom navigation during an active call.
-    // In Navigation Compose, destination.route returns the route *template* string
-    // (e.g. "in_call/{callId}"), not the instantiated route with argument values.
-    // Both an exact equality check against NavRoutes.InCall.route and this startsWith
-    // check would work; startsWith is preferred as a defensive guard in case the
-    // route template is ever changed or extended.
-    val showBottomBar = !currentRoute.orEmpty().startsWith("in_call/")
+    // destination.route exposes the registered route template, so the in-call
+    // destination is identified by exact equality with NavRoutes.InCall.route.
+    val showBottomBar = currentRoute != NavRoutes.InCall.route
 
     Scaffold(
         bottomBar = {

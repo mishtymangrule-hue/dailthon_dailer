@@ -22,13 +22,15 @@ import javax.inject.Inject
  * - Valid range: 7–15 dialable digits (E.164 without country-code prefix can be shorter;
  *   15 is the ITU-T E.164 maximum).
  *
- * @param countryCode ISO 3166-1 alpha-2 country code used for formatting (default "IN").
+ * @param countryCode ISO 3166-1 alpha-2 country code used for formatting.
+ *                    Defaults to the current system locale country, with "US"
+ *                    as the final fallback when the locale has no region.
  */
 class FormatPhoneNumberUseCase @Inject constructor() {
 
     operator fun invoke(
         rawInput: String,
-        countryCode: String = "IN"
+        countryCode: String = defaultCountryCode()
     ): PhoneNumber {
         if (rawInput.isBlank()) return PhoneNumber.EMPTY
 
@@ -64,4 +66,10 @@ class FormatPhoneNumberUseCase @Inject constructor() {
             countryCode = countryCode.uppercase(Locale.ROOT)
         )
     }
+
+    private fun defaultCountryCode(): String =
+        Locale.getDefault().country
+            .takeIf { it.length == 2 }
+            ?.uppercase(Locale.ROOT)
+            ?: "US"
 }

@@ -6,6 +6,7 @@ import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,7 +35,6 @@ class PhoneNumberFormatter @Inject constructor(
 
     companion object {
         private const val TAG = "PhoneNumberFormatter"
-        private const val DEFAULT_REGION = "IN"
     }
 
     /**
@@ -43,7 +43,7 @@ class PhoneNumberFormatter @Inject constructor(
      * Processing steps:
      * 1. Detect and split off any extension suffix (, or ;).
      * 2. Strip non-dialable characters from the main part (keep digits and leading +).
-     * 3. Delegate to [PhoneNumberUtils.formatNumber] with [DEFAULT_REGION].
+    * 3. Delegate to [PhoneNumberUtils.formatNumber] with the current system region.
      * 4. Fall back to [heuristicFormat] when the platform formatter returns null.
      * 5. Re-append the extension suffix verbatim.
      *
@@ -61,7 +61,7 @@ class PhoneNumberFormatter @Inject constructor(
             val stripped = stripFormatting(mainPart)
             if (stripped.isEmpty()) return rawInput
 
-            val formatted = PhoneNumberUtils.formatNumber(stripped, DEFAULT_REGION)
+            val formatted = PhoneNumberUtils.formatNumber(stripped, defaultRegion())
                 ?: heuristicFormat(stripped)
 
             formatted + extensionSuffix
@@ -127,4 +127,10 @@ class PhoneNumberFormatter @Inject constructor(
             else     -> digits
         }
     }
+
+    private fun defaultRegion(): String =
+        Locale.getDefault().country
+            .takeIf { it.length == 2 }
+            ?.uppercase(Locale.ROOT)
+            ?: "US"
 }

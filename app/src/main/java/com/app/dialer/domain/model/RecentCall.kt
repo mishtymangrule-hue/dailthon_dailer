@@ -39,7 +39,9 @@ enum class CallType {
     MISSED,
     REJECTED,
     VOICEMAIL,
-    BLOCKED;
+    BLOCKED,
+    /** Catch-all for unrecognised [android.provider.CallLog.Calls] type values (system value 0). */
+    UNKNOWN;
 
     /** Returns the [android.provider.CallLog.Calls] integer for this type. */
     fun toSystemValue(): Int = when (this) {
@@ -49,12 +51,13 @@ enum class CallType {
         REJECTED  -> 5
         VOICEMAIL -> 4
         BLOCKED   -> 6
+        UNKNOWN   -> 0
     }
 
     companion object {
         /**
          * Converts from [android.provider.CallLog.Calls] type integer to [CallType].
-         * Defaults to [INCOMING] for unrecognised values so that unknown entries are still surfaced.
+         * Defaults to [UNKNOWN] for unrecognised values.
          */
         fun fromSystemValue(value: Int): CallType = when (value) {
             1 -> INCOMING
@@ -63,7 +66,8 @@ enum class CallType {
             5 -> REJECTED
             4 -> VOICEMAIL
             6 -> BLOCKED
-            else -> INCOMING
+            0 -> UNKNOWN
+            else -> UNKNOWN
         }
     }
 }

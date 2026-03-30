@@ -14,6 +14,11 @@ import javax.inject.Singleton
  * Wraps [AudioManager] audio-focus acquisition and abandonment to keep
  * [InCallServiceImpl] and [AudioRouteManager] free of boilerplate.
  *
+ * ### P2+ scope
+ * This class is a Prompt-2 (InCallService module) concern. It is not injected
+ * or invoked in P1; the full audio-focus lifecycle (request on call ACTIVE,
+ * abandon on call DISCONNECTED) is wired in Prompt 2.
+ *
  * ### Design
  * A single, reusable [AudioFocusRequest] (API 26+) is built on first
  * [requestFocus] call and released in [abandonFocus]. Subsequent calls to

@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Dailathon</string>
+
+    <!-- Permission rationale -->
+    <string name="permission_call_phone_rationale">Phone permission is required to make calls</string>
+
+    <!-- Voicemail -->
+    <string name="voicemail_not_available">Voicemail is not yet available in this version</string>
+
+    <!-- Generic errors -->
+    <string name="error_sim_unavailable">SIM card unavailable</string>
+    <string name="error_invalid_number">Invalid phone number</string>
 </resources>

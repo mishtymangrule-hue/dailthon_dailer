@@ -14,6 +14,11 @@ import javax.inject.Singleton
  * Application-scoped manager that tracks the state of the currently active call
  * by consuming events from [CallEventBus].
  *
+ * ### P2+ scope
+ * This class is a Prompt-2 (InCallService module) concern. In P1, [CallEventBus]
+ * emits no events, so all state flows remain null / idle. Full wiring via
+ * [InCallServiceImpl] is implemented in Prompt 2.
+ *
  * Runs in a background [CoroutineScope] with [SupervisorJob] + [Dispatchers.Default]
  * so that a failure in the event collector does not bubble up and cancel the scope.
  *

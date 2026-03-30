@@ -42,8 +42,18 @@ class ContactRepositoryImpl @Inject constructor(
     }
 
     // ─── Mapping helpers ──────────────────────────────────────────────────────
-
-    private fun ContactEntity.toDomain() = Contact(
+    /**
+     * Maps a [ContactEntity] to a [Contact] domain model.
+     *
+     * **P1 limitation — lossy single-number mapping:** [ContactEntity] stores only
+     * one phone number per row (`phoneNumber` column). This mapping therefore always
+     * produces a single-element [phoneNumbers] list, which is lossy for contacts that
+     * have multiple phone numbers in the system ContactsProvider.
+     *
+     * Prompt 2 (Contacts module) will fix this by querying all numbers for the contact
+     * from [android.provider.ContactsContract.CommonDataKinds.Phone] using the
+     * contact ID and mapping them into a full multi-element list.
+     */    private fun ContactEntity.toDomain() = Contact(
         id = contactId,
         displayName = displayName,
         phoneNumbers = listOf(

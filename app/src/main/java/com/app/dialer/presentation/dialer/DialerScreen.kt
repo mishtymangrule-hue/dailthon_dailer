@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import com.app.dialer.presentation.dialer.components.KeypadGrid
 import com.app.dialer.presentation.dialer.components.SimSelectorDialog
 import com.app.dialer.presentation.dialer.components.SuggestedContactsList
 import com.app.dialer.presentation.dialer.components.VoicemailButton
+import kotlinx.coroutines.launch
 
 /**
  * Root composable for the Dialer / keypad screen.
@@ -67,6 +69,7 @@ fun DialerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var showSimSelector by remember { mutableStateOf(false) }
     var availableSims by remember { mutableStateOf<List<SimCard>>(emptyList()) }
 
@@ -219,7 +222,11 @@ fun DialerScreen(
                     .padding(horizontal = 24.dp, vertical = 4.dp)
             ) {
                 VoicemailButton(
-                    onClick = { /* TODO: navigate to voicemail */ },
+                    onClick = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Voicemail is not yet available in this version")
+                        }
+                    },
                     hasUnread = false
                 )
                 CallButton(

@@ -2,7 +2,6 @@ package com.app.dialer.data.repository
 
 import com.app.dialer.data.local.CallLogDao
 import com.app.dialer.data.model.CallLogEntity
-import com.app.dialer.domain.model.CallLogType
 import com.app.dialer.domain.model.CallLogEntry
 import com.app.dialer.domain.model.CallType
 import com.app.dialer.domain.repository.CallLogRepository
@@ -14,9 +13,8 @@ import javax.inject.Singleton
 /**
  * Concrete implementation of [CallLogRepository] backed by the local Room database.
  *
- * [CallLogEntity] stores [CallType] (the spec-canonical enum); [CallLogEntry] uses
- * the legacy [CallLogType] enum. The mapper bridges the two via their shared
- * Android system integer values.
+ * Both [CallLogEntity] and [CallLogEntry] now use [CallType] as the canonical
+ * call-classification enum, so no integer-bridge conversion is required.
  */
 @Singleton
 class CallLogRepositoryImpl @Inject constructor(
@@ -50,29 +48,27 @@ class CallLogRepositoryImpl @Inject constructor(
     // ─── Mapping helpers ──────────────────────────────────────────────────────
 
     /**
-     * Entity → domain: converts [CallType] (canonical enum) to [CallLogType] (legacy enum)
-     * via the shared Android system integer value.
+     * Entity → domain: both sides use [CallType], so this is a direct field copy.
      */
     private fun CallLogEntity.toDomain() = CallLogEntry(
         id = id,
         phoneNumber = phoneNumber,
         contactName = contactName,
-        callType = CallLogType.fromSystemValue(callType.toSystemValue()),
+        callType = callType,
         timestamp = timestamp,
         durationSeconds = durationSeconds,
         isRead = isRead
     )
 
     /**
-     * Domain → entity: converts [CallLogType] (legacy enum) to [CallType] (canonical enum)
-     * via the shared Android system integer value. photoUri and simSlotIndex are absent
-     * from the legacy [CallLogEntry] model and default to null / -1.
+     * Domain → entity: direct [CallType] copy. `photoUri` and `simSlotIndex` are absent
+     * from [CallLogEntry] and default to null / -1.
      */
     private fun CallLogEntry.toEntity() = CallLogEntity(
         id = id,
         contactName = contactName,
         phoneNumber = phoneNumber,
-        callType = CallType.fromSystemValue(callType.systemValue),
+        callType = callType,
         durationSeconds = durationSeconds,
         timestamp = timestamp,
         photoUri = null,

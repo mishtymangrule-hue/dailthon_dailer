@@ -9,6 +9,8 @@ import androidx.room.PrimaryKey
  *
  * Caches frequently accessed fields from the system ContactsProvider to
  * reduce repeated ContentResolver queries across features.
+ * Prompt 2 should expand this into multi-number support, either by storing one
+ * row per contact-number pair or by normalizing phone numbers into a child table.
  */
 @Entity(tableName = "contacts")
 data class ContactEntity(

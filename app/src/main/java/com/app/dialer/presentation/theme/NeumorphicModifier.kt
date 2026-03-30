@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
  *
  * In "pressed" mode (isPressed = true), the shadows are inverted to simulate
  * an inset / inner-pressed state.
+ * This is still a dual outer-shadow approximation, not a mathematically exact
+ * inner-shadow implementation clipped to the interior path.
  *
  * ### Rendering notes
  * Compose's [drawBehind] records drawing commands via Skia's hardware RenderNode

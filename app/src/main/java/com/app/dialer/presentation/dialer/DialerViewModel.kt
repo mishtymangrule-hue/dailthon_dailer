@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.dialer.core.audio.AudioRouteManager
 import com.app.dialer.domain.model.RecentCall
 import com.app.dialer.domain.model.SimCard
 import com.app.dialer.domain.model.SuggestedContact
@@ -68,8 +67,7 @@ class DialerViewModel @Inject constructor(
     private val getSuggestedContacts: GetSuggestedContactsUseCase,
     private val getRecentCalls: GetRecentCallsUseCase,
     private val formatPhoneNumber: FormatPhoneNumberUseCase,
-    private val getAvailableSimCards: GetAvailableSimCardsUseCase,
-    private val audioRouteManager: AudioRouteManager
+    private val getAvailableSimCards: GetAvailableSimCardsUseCase
 ) : ViewModel() {
 
     // ─── Internal mutable state ────────────────────────────────────────────────
@@ -248,16 +246,14 @@ class DialerViewModel @Inject constructor(
     }
 
     /**
-     * Plays the DTMF tone for [digit] using [AudioRouteManager].
-     * Runs on [Dispatchers.IO] to avoid blocking the Main thread.
+     * Stub: DTMF tone playback is P2+ scope (belongs to the in-call audio session,
+     * not the dialer keypad). No-op for P1 — keypad tap audio is handled by
+     * [HapticFeedbackManager] in the UI layer.
      *
      * @param digit Single character string from the dial pad (0–9, *, #).
      */
     fun playDtmfTone(digit: String) {
-        val char = digit.firstOrNull() ?: return
-        viewModelScope.launch(Dispatchers.IO) {
-            audioRouteManager.playDtmfTone(char)
-        }
+        // P2+: delegate to AudioRouteManager.playDtmfTone via InCallService
     }
 
     // ─── Private helpers ───────────────────────────────────────────────────────

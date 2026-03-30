@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.app.dialer.data.model.RecentCallEntity
+import com.app.dialer.domain.model.CallType
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -53,9 +54,9 @@ interface RecentCallDao {
     suspend fun markAsRead(id: Long)
 
     /**
-     * Observes the count of unread missed calls (call_type = 'MISSED' AND is_read = 0).
+     * Observes the count of unread missed calls for the persisted [CallType.MISSED] enum value.
      * Emits a new count whenever any relevant row changes.
      */
-    @Query("SELECT COUNT(*) FROM recent_calls WHERE call_type = 'MISSED' AND is_read = 0")
-    fun getUnreadMissedCallCount(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM recent_calls WHERE call_type = :missedType AND is_read = 0")
+    fun getUnreadMissedCallCount(missedType: String = CallType.MISSED.name): Flow<Int>
 }

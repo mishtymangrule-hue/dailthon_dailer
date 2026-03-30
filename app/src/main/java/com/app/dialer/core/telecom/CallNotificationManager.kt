@@ -18,6 +18,11 @@ import javax.inject.Singleton
 /**
  * Central manager for all call-related system notifications.
  *
+ * ### P2+ scope
+ * This class is a Prompt-2 (InCallService module) concern. Notification channel
+ * creation is idempotent and safe to call early, but notification posting is not
+ * triggered by [InCallServiceImpl] in P1.
+ *
  * Owns three notification channels:
  * - [CHANNEL_ACTIVE_CALL]: ongoing in-call notification with call controls.
  * - [CHANNEL_INCOMING_CALL]: high-priority full-screen incoming call alert.

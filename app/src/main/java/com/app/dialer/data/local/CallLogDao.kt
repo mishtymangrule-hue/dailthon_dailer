@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.app.dialer.data.model.CallLogEntity
+import com.app.dialer.domain.model.CallType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -41,6 +42,6 @@ interface CallLogDao {
     @Query("UPDATE call_logs SET is_read = 1 WHERE phone_number = :number")
     suspend fun markReadByNumber(number: String)
 
-    @Query("SELECT COUNT(*) FROM call_logs WHERE is_read = 0 AND call_type = 'MISSED'")
-    fun getUnreadMissedCallCount(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM call_logs WHERE is_read = 0 AND call_type = :missedType")
+    fun getUnreadMissedCallCount(missedType: String = CallType.MISSED.name): Flow<Int>
 }

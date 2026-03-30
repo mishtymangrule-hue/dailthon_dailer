@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import app.cash.turbine.test
-import com.app.dialer.core.audio.AudioRouteManager
 import com.app.dialer.domain.model.PhoneNumber
 import com.app.dialer.domain.model.RecentCall
 import com.app.dialer.domain.model.SimCard
@@ -49,7 +48,6 @@ class DialerViewModelTest {
     private lateinit var getRecentCalls: GetRecentCallsUseCase
     private lateinit var formatPhoneNumber: FormatPhoneNumberUseCase
     private lateinit var getAvailableSimCards: GetAvailableSimCardsUseCase
-    private lateinit var audioRouteManager: AudioRouteManager
 
     private lateinit var viewModel: DialerViewModel
 
@@ -81,7 +79,6 @@ class DialerViewModelTest {
         getRecentCalls = mockk(relaxed = true)
         formatPhoneNumber = mockk(relaxed = true)
         getAvailableSimCards = mockk(relaxed = true)
-        audioRouteManager = mockk(relaxed = true)
 
         every { getSuggestedContacts(any()) } returns flowOf(emptyList())
         every { getRecentCalls(any()) } returns flowOf(emptyList<RecentCall>())
@@ -101,8 +98,7 @@ class DialerViewModelTest {
             getSuggestedContacts = getSuggestedContacts,
             getRecentCalls = getRecentCalls,
             formatPhoneNumber = formatPhoneNumber,
-            getAvailableSimCards = getAvailableSimCards,
-            audioRouteManager = audioRouteManager
+            getAvailableSimCards = getAvailableSimCards
         )
     }
 
@@ -331,11 +327,10 @@ class DialerViewModelTest {
     // ─── playDtmfTone ─────────────────────────────────────────────────────────
 
     @Test
-    fun `playDtmfTone delegates to audioRouteManager`() = runTest {
+    fun `playDtmfTone is a no-op P1 stub and does not throw`() = runTest {
+        // P1 scope: playDtmfTone is a no-op stub; verify it completes without exception.
         viewModel.playDtmfTone("5")
-        // Allow dispatched IO coroutine to run
         testDispatcher.scheduler.advanceUntilIdle()
-        // audioRouteManager is relaxed-mocked — verify the call was delegated
-        verify { audioRouteManager.playDtmfTone('5') }
+        // No assertion needed — if the call throws, the test fails automatically.
     }
 }
