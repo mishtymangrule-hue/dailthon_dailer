@@ -18,12 +18,11 @@ import javax.inject.Singleton
  * DAO `@Provides` bindings live in [DatabaseModule], which owns the
  * [com.app.dialer.data.local.AppDatabase] singleton and all DAO derivations.
  *
- * [DialerContactRepository] is bound in [ContactModule] (separated for testability).
+ * [ContactRepository] is bound in [ContactModule] (separated for testability).
  *
  * | Interface             | Implementation          | Notes |
  * |-----------------------|-------------------------|-------|
  * | [CallLogRepository]   | [CallLogRepositoryImpl] | P1    |
- * | [ContactRepository]   | [ContactRepositoryImpl] | P1    |
  * | [DialerRepository]    | [DialerRepositoryImpl]  | 2B    |
  */
 @Module
@@ -35,12 +34,6 @@ abstract class RepositoryModule {
     abstract fun bindCallLogRepository(
         impl: CallLogRepositoryImpl
     ): CallLogRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindContactRepository(
-        impl: ContactRepositoryImpl
-    ): ContactRepository
 
     @Binds
     @Singleton

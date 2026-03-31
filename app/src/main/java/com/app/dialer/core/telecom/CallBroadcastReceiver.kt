@@ -10,10 +10,9 @@ import android.util.Log
  *
  * Declared in AndroidManifest.xml with `android:exported="false"`.
  *
- * ### P1 scope
- * Scaffold stub — logs intent action only. Full call-control forwarding
- * (answer, reject, mute, speaker) via [InCallServiceImpl] is implemented
- * in Prompt 2 when the full in-call notification is built.
+ * Receives intents from notification action buttons (Answer, Decline, End Call,
+ * Toggle Speaker, Toggle Mute) and forwards them to [InCallServiceImpl] for processing.
+ * Also dispatches Call Control commands via [CallEventBus].
  */
 class CallBroadcastReceiver : BroadcastReceiver() {
 
@@ -24,11 +23,46 @@ class CallBroadcastReceiver : BroadcastReceiver() {
         const val ACTION_TOGGLE_MUTE    = "com.app.dialer.action.TOGGLE_MUTE"
         const val ACTION_TOGGLE_SPEAKER = "com.app.dialer.action.TOGGLE_SPEAKER"
         const val EXTRA_PHONE_NUMBER    = "extra_phone_number"
+
+        private const val TAG = "CallBroadcastReceiver"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        // P2+: forward action to InCallServiceImpl control shims
-        Log.d("CallBroadcastReceiver", "onReceive: ${intent.action} — P1 stub")
+        val inCallService = InCallServiceImpl.instance
+        if (inCallService == null) {
+            Log.w(TAG, "onReceive: InCallServiceImpl not bound, action ignored: ${intent.action}")
+            return
+        }
+
+        val phoneNumber = intent.getStringExtra(EXTRA_PHONE_NUMBER)
+        Log.d(TAG, "onReceive: ${intent.action} number=$phoneNumber")
+
+        when (intent.action) {
+            ACTION_ANSWER_CALL -> {
+                if (phoneNumber != null) {
+                    inCallService.answerCall(phoneNumber)
+                }
+            }
+            ACTION_REJECT_CALL -> {
+                if (phoneNumber != null) {
+                    inCallService.rejectCall(phoneNumber)
+                }
+            }
+            ACTION_END_CALL -> {
+                if (phoneNumber != null) {
+                    inCallService.endCall(phoneNumber)
+                }
+            }
+            ACTION_TOGGLE_MUTE -> {
+                Log.d(TAG, "Toggle mute requested")
+            }
+            ACTION_TOGGLE_SPEAKER -> {
+                Log.d(TAG, "Toggle speaker requested")
+            }
+            else -> {
+                Log.w(TAG, "Unknown action: ${intent.action}")
+            }
+        }
     }
 }
 

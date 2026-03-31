@@ -1,7 +1,7 @@
 package com.app.dialer.domain.usecase
 
 import com.app.dialer.domain.model.SuggestedContact
-import com.app.dialer.domain.repository.DialerContactRepository
+import com.app.dialer.domain.repository.ContactRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -11,7 +11,7 @@ import javax.inject.Inject
  * ### Behaviour
  * - **Empty query** → returns starred and frequently-called contacts, limited to 5.
  *   This is the idle state shown before the user starts typing.
- * - **Non-empty query** → delegates to [DialerContactRepository.searchContacts], which
+ * - **Non-empty query** → delegates to [ContactRepository.searchContacts], which
  *   performs a full-text match against names and numbers with no hard cap.
  *
  * Debouncing (to avoid querying on every keystroke) must be applied by the
@@ -21,7 +21,7 @@ import javax.inject.Inject
  * @param contactRepository Provides contact data from the system ContentProvider / cache.
  */
 class GetSuggestedContactsUseCase @Inject constructor(
-    private val contactRepository: DialerContactRepository
+    private val contactRepository: ContactRepository
 ) {
     /** Idle-state suggestion limit (starred + frequent). */
     private val idleSuggestionLimit = 5

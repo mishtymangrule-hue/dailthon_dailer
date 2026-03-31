@@ -1,7 +1,7 @@
 package com.app.dialer.core.di
 
 import com.app.dialer.data.repository.DialerContactRepositoryImpl
-import com.app.dialer.domain.repository.DialerContactRepository
+import com.app.dialer.domain.repository.ContactRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -9,7 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt module that binds [DialerContactRepository] to its real ContentResolver-
+ * Hilt module that binds [ContactRepository] to its real ContentResolver-
  * backed implementation [DialerContactRepositoryImpl].
  *
  * Separated from [RepositoryModule] so that the contact-data layer can be
@@ -21,7 +21,7 @@ abstract class ContactModule {
 
     @Binds
     @Singleton
-    abstract fun bindDialerContactRepository(
+    abstract fun bindContactRepository(
         impl: DialerContactRepositoryImpl
-    ): DialerContactRepository
+    ): ContactRepository
 }

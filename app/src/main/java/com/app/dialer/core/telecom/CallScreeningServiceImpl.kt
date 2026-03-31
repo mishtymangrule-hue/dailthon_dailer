@@ -36,7 +36,6 @@ class CallScreeningServiceImpl : CallScreeningService() {
         val number = callDetails.handle?.schemeSpecificPart ?: "Unknown"
         Log.d(TAG, "onScreenCall: $number direction=${callDetails.callDirection}")
 
-        // TODO: query block-list repository and set setDisallowCall(true) for blocked numbers
         val isBlocked = isNumberBlocked(number)
 
         val response = CallResponse.Builder()
@@ -54,14 +53,20 @@ class CallScreeningServiceImpl : CallScreeningService() {
     }
 
     /**
-     * Stub block-list check.
+     * Checks if a phone number is in the block-list.
      *
-     * Replace this with a real lookup against a Room-backed block-list table.
-     * This method runs on the main thread, so real I/O must be pre-loaded or
-     * performed on a background thread with a synchronous barrier.
+     * Placeholder implementation: no numbers are currently blocked.
+     * In a production system, this would query a Room-backed block-list DAO
+     * for entries matching the normalized phone number.
+     *
+     * ### Threading
+     * This method runs on the Telecom background thread, so synchronous
+     * database queries are acceptable here. For more complex lookups,
+     * consider pre-loading the block-list into memory on startup.
      */
     private fun isNumberBlocked(number: String): Boolean {
-        // Placeholder: no numbers are blocked until a block-list DAO is wired in.
+        // TODO: Wire in block-list DAO if/when call screening is full-featured
+        // For now, all calls are allowed through
         return false
     }
 }

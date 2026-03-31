@@ -2,7 +2,7 @@ package com.app.dialer.data.repository
 
 import com.app.dialer.data.datasource.ContactDataSource
 import com.app.dialer.domain.model.SuggestedContact
-import com.app.dialer.domain.repository.DialerContactRepository
+import com.app.dialer.domain.repository.ContactRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -12,8 +12,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Real [DialerContactRepository] backed by Android's [ContactsContract] ContentProvider
+ * Real [ContactRepository] implementation backed by Android's [ContactsContract] ContentProvider
  * via [ContactDataSource].
+ *
+ * Provides dialer-focused contact suggestions and reverse lookup. This implementation aligns
+ * with Prompt 2 specification for real-time dial-pad auto-complete.
  *
  * ### Threading
  * All ContentResolver reads run on [Dispatchers.IO]. The [Flow]-returning methods
@@ -28,7 +31,7 @@ import javax.inject.Singleton
 @Singleton
 class DialerContactRepositoryImpl @Inject constructor(
     private val contactDataSource: ContactDataSource
-) : DialerContactRepository {
+) : ContactRepository {
 
     override fun getSuggestedContacts(query: String, limit: Int): Flow<List<SuggestedContact>> =
         flow {
